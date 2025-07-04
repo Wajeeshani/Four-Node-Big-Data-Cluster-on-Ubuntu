@@ -8,7 +8,7 @@ Before begin, ensure each of your 4 servers are ready.<br>
 •	Network: All servers must have static IPs and be able to resolve each other's hostnames via the /etc/hosts file.<br>
 •	User Account: Create a dedicated hadoop user on all nodes.<br>
 •	SSH Access: Configure passwordless SSH for the hadoop user from server-1 to all other servers (server-1, server-2, server-3, server-4).<br>
-•	Software: Install OpenJDK 11 and disable or configure firewalls on all four nodes.<br>
+•	Software: Install OpenJDK 8 and disable or configure firewalls on all four nodes.<br>
 
 ## Installing a preferable editor in all 4 nodes
 ```
@@ -117,6 +117,9 @@ chmod 600 ~/.ssh/*
 rm /tmp/combined_known_hosts /tmp/combined_keys
 
 #Verify the setup
+# you can either use
+ssh hadoop@mst2 date # use all nodes to test if date is returned
+or
 for source in mst1 mst2 mst3 slv1; do
   for target in mst1 mst2 mst3 slv1; do
     echo "Testing $source -> $target..."
@@ -128,7 +131,26 @@ verification should output below
 
 ![image](https://github.com/user-attachments/assets/e972f5e8-236d-42bf-a0c4-7907540a682a)
 
+## Software: Install OpenJDK 8
 
+```
+#Update the package index
+sudo apt update
+
+#Install OpenJDK 11
+sudo apt install openjdk-11-jdk -y
+
+#Verify the installation
+java -version
+
+#JAVA_HOME setup
+#Add the following to your .bashrc or .profile
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+export PATH=$JAVA_HOME/bin:$PATH
+
+source ~/.bashrc
+
+```
 
 
 
