@@ -152,7 +152,7 @@ source ~/.bashrc
 ```
 Now the pre-requisits are all installed and configured. 
 
-#Install MariaDB in 3 Master nodes
+# Install MariaDB in 3 Master nodes
 
 ```
 #Install MariaDB
@@ -167,7 +167,7 @@ sudo systemctl status mariadb
 ```
 Verification should output "Active: active (running)"
 
-#Installing HAProxy on Ubuntu Slave Node
+# Installing HAProxy on Ubuntu Slave Node
 
 ```
 #Install HAProxy
@@ -177,11 +177,11 @@ sudo apt install haproxy -y
 haproxy -v
 ```
 
-#Setting up MariaDB Galera Cluster
+# Setting up MariaDB Galera Cluster
 
 A MariaDB Galera Cluster is a synchronous multi-master database cluster solution that provides high availability, scalability, and data consistency across multiple nodes. It allows read/write operations on any node, with changes automatically replicated to all other nodes in real time. 
 
-###Key Features of MariaDB Galera Cluster
+### Key Features of MariaDB Galera Cluster
 - Synchronous Replication: Changes are applied to all nodes simultaneously, ensuring no data loss 16.
 - Multi-Master Architecture: Any node can handle write operations, eliminating single-point-of-failure 47.
 - High Availability: If a node fails, others continue serving requests 69.
