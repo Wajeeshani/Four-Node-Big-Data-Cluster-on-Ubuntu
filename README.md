@@ -186,3 +186,4 @@ A MariaDB Galera Cluster is a synchronous multi-master database cluster solution
 - Multi-Master Architecture: Any node can handle write operations, eliminating single-point-of-failure 47.
 - High Availability: If a node fails, others continue serving requests 69.
 - Automatic Node Recovery: Failed nodes can rejoin the cluster and sync automatically
+
