@@ -124,6 +124,10 @@ for source in mst1 mst2 mst3 slv1; do
   done
 done
 ```
+verification should output below 
+
+![image](https://github.com/user-attachments/assets/e972f5e8-236d-42bf-a0c4-7907540a682a)
+
 
 
 
