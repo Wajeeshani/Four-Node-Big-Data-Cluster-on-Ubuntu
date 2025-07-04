@@ -8,7 +8,7 @@ Before begin, ensure each of your 4 servers are ready.<br>
 •	Network: All servers must have static IPs and be able to resolve each other's hostnames via the /etc/hosts file.<br>
 •	User Account: Create a dedicated hadoop user on all nodes.<br>
 •	SSH Access: Configure passwordless SSH for the hadoop user from server-1 to all other servers (server-1, server-2, server-3, server-4).<br>
-•	Software: Install OpenJDK 8 and disable or configure firewalls on all four nodes.<br>
+•	Software: Install OpenJDK 11 and disable or configure firewalls on all four nodes.<br>
 
 ## Installing a preferable editor in all 4 nodes
 ```
@@ -150,7 +150,39 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 source ~/.bashrc
 ```
+Now the pre-requisits are all installed and configured. 
 
+#Install MariaDB in 3 Master nodes
 
+```
+#Install MariaDB
+sudo apt install mariadb-server -y
 
+#Start and Enable MariaDB Service
+sudo systemctl start mariadb
+sudo systemctl enable mariadb
 
+#Verify MariaDB Installation
+sudo systemctl status mariadb
+```
+Verification should output "Active: active (running)"
+
+#Installing HAProxy on Ubuntu Slave Node
+
+```
+#Install HAProxy
+sudo apt install haproxy -y
+
+#Verify installation
+haproxy -v
+```
+
+#Setting up MariaDB Galera Cluster
+
+A MariaDB Galera Cluster is a synchronous multi-master database cluster solution that provides high availability, scalability, and data consistency across multiple nodes. It allows read/write operations on any node, with changes automatically replicated to all other nodes in real time. 
+
+###Key Features of MariaDB Galera Cluster
+- Synchronous Replication: Changes are applied to all nodes simultaneously, ensuring no data loss 16.
+- Multi-Master Architecture: Any node can handle write operations, eliminating single-point-of-failure 47.
+- High Availability: If a node fails, others continue serving requests 69.
+- Automatic Node Recovery: Failed nodes can rejoin the cluster and sync automatically
