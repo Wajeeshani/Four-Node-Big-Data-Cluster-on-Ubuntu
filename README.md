@@ -131,7 +131,7 @@ verification should output below
 
 ![image](https://github.com/user-attachments/assets/e972f5e8-236d-42bf-a0c4-7907540a682a)
 
-## Software: Install OpenJDK 8
+## Software: Install OpenJDK 11 on all four servers
 
 ```
 #Update the package index
@@ -149,7 +149,6 @@ export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 export PATH=$JAVA_HOME/bin:$PATH
 
 source ~/.bashrc
-
 ```
 
 
