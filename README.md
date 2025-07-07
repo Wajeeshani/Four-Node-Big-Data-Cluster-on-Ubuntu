@@ -218,9 +218,340 @@ autopurge.snapRetainCount=3
 autopurge.purgeInterval=1
 
 # Cluster configuration
-server.1=zkhive:2888:3888
-server.2=zkhive:2888:3888
-server.3=zkhive:2888:3888
+server.1=mst1:2888:3888
+server.2=mst2:2888:3888
+server.3=mst3:2888:3888
+```
+# HADOOP Installation and configuration
+```
+wget https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz
+tar xzvf hadoop-3.4.0.tar.gz
+sudo mv hadoop-3.4.0 /opt/hadoop
+```
+Open ~/.bashrc file and add below configurations 
+
+```
+export HADOOP_HOME=/opt/hadoop
+export HADOOP_INSTALL=$HADOOP_HOME
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+export HADOOP_COMMON_LIB_NATIVE_DIR=$HADOOP_HOME/lib/native
+export PATH=$PATH:$HADOOP_HOME/sbin:$HADOOP_HOME/bin
+export JAVA_HOME=<path_to_java_jdk>
+export PATH=$PATH:$JAVA_HOME/bin
+
+source ~/.bashrc
+```
+Hadoop Configuration for Multi-node Cluster
+```
+cd /opt/hadoop/etc/hadoop/
+nano $HADOOP_HOME/etc/hadoop/hadoop-env.sh
+  #Add export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64 
+```
+```
+nano $HADOOP_HOME/etc/hadoop/core-site.xml
+
+<configuration>
+<property>
+<name>fs.defaultFS</name>
+<value> hdfs://hadoop-cluster</value>
+</property>
+<property>
+<name>hadoop.tmp.dir</name>
+<value>/opt/hadoop-${user.name}</value>
+</property>
+<property>
+<name>ha.zookeeper.quorum</name>
+<value>zkhive:2181</value>
+</property>
+</configuration>
+```
+
+```
+nano $HADOOP_HOME/etc/hadoop/hdfs-site.xml
+
+Add following :
+
+<configuration>
+<property>
+<name>dfs.nameservices</name>
+<value>hadoop-cluster</value>
+</property>
+<property>
+<name>dfs.ha.namenodes.hadoop-cluster</name>
+<value>nn1,nn2,nn3</value>
+</property>
+<property>
+<name>dfs.namenode.rpc-address.hadoop-cluster.nn1</name>
+<value>mst1:8020</value>
+</property>
+<property>
+<name>dfs.namenode.rpc-address.hadoop-cluster.nn2</name>
+<value>mst2:8020</value>
+</property>
+<property>
+<name>dfs.namenode.rpc-address.hadoop-cluster.nn3</name>
+<value>mst3:8020</value>
+</property>
+<property>
+<name>dfs.namenode.http-address</name>
+<value>0.0.0.0:9870</value>
+</property>
+12
+<property>
+<name>dfs.client.failover.proxy.provider.hadoop-cluster</name>
+<value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+</property>
+<property>
+<name>dfs.namenode.shared.edits.dir</name>
+<value>qjournal://zkhive:8485/hadoop-cluster</value>
+</property>
+<property>
+<name>dfs.ha.fencing.methods</name>
+<value>sshfence</value>
+</property>
+<property>
+<name>dfs.ha.fencing.ssh.private-key-files</name>
+<value>/home/hadoop/.ssh/id_rsa</value>
+</property>
+<property>
+<name>dfs.ha.automatic-failover.enabled</name>
+<value>true</value>
+</property>
+<property>
+<name>dfs.ha.nn.not-become-active-in-safemode</name>
+<value>true</value>
+</property>
+<property>
+<name>dfs.journalnode.edits.dir</name>
+<value>/data/hdfs/journal</value>
+</property>
+<property>
+<name>dfs.datanode.address</name>
+<value>0.0.0.0:50010</value>
+</property>
+<property>
+<name>dfs.datanode.http.address</name>
+<value>0.0.0.0:50075</value>
+</property>
+<property>
+<name>dfs.hosts.exclude</name>
+<value>/opt/hadoop/etc/hadoop/dfs.exclude</value>
+</property>
+<property>
+<name>dfs.namenode.name.dir</name>
+<value>/data/hdfs/namenode</value>
+</property>
+<property>
+<name>dfs.namenode.checkpoint.dir</name>
+<value>/data/hdfs/checkpoint</value>
+</property>
+<property>
+<name>dfs.datanode.data.dir</name>
+<value>/data/hdfs/datanode</value>
+</property>
+<property>
+<name>dfs.replication</name>
+<value>1</value>
+13
+</property>
+<property>
+<name>dfs.blocksize</name>
+<value>134217728</value> <!-- 128 MB -->
+</property>
+<property>
+<name>dfs.heartbeat.interval</name>
+<value>3</value>
+</property>
+<property>
+<name>dfs.namenode.checkpoint.period</name>
+<value>3600</value> <!-- Every hour -->
+</property>
+<property>
+<name>dfs.permissions.enabled</name>
+<value>true</value>
+</property>
+<property>
+<name>dfs.namenode.edits.journal-plugin.hdfs</name>
+<value>org.apache.hadoop.hdfs.qjournal.client.QuorumJournalManager</value>
+</property>
+<property>
+<name>dfs.namenode.edits.dir</name>
+<value>/data/hdfs/namenode/edits</value>
+</property>
+<property>
+<name>dfs.datanode.ipc.address</name>
+<value>0.0.0.0:8010</value>
+</property>
+<property>
+<name>dfs.user.home.dir.prefix</name>
+<value>/user</value>
+</property>
+<property>
+<name>dfs.namenode.acls.enabled</name>
+<value>true</value>
+</property>
+</configuration>
+```
+```
+nano $HADOOP_HOME/etc/hadoop/yarn-site.xml
+
+<configuration>
+<property>
+<name>yarn.resourcemanager.ha.enabled</name>
+<value>true</value>
+</property>
+<property>
+<name>yarn.resourcemanager.cluster-id</name>
+<value>hadoop-cluster</value>
+</property>
+<property>
+<name>yarn.resourcemanager.ha.rm-ids</name>
+<value>rm1,rm2,rm3</value>
+</property>
+<property>
+<name>yarn.resourcemanager.hostname.rm1</name>
+<value>mst1</value>
+</property>
+<property>
+<name>yarn.resourcemanager.hostname.rm2</name>
+<value>mst2</value>
+</property>
+<property>
+<name>yarn.resourcemanager.hostname.rm3</name>
+<value>mst3</value>
+</property>
+<property>
+<name>yarn.resourcemanager.address.rm1</name>
+<value>mst1:8032</value>
+</property>
+<property>
+<name>yarn.resourcemanager.address.rm2</name>
+<value>mst2:8032</value>
+</property>
+<property>
+<name>yarn.resourcemanager.address.rm3</name>
+<value>mst3:8032</value>
+</property>
+<property>
+<name>yarn.nodemanager.aux-services</name>
+<value>mapreduce_shuffle</value>
+</property>
+<property>
+<name>yarn.resourcemanager.webapp.address.rm1</name>
+<value>mst1:8088</value>
+</property>
+<property>
+<name>yarn.resourcemanager.webapp.address.rm2</name>
+<value>mst2:8088</value>
+</property>
+<property>
+<name>yarn.resourcemanager.webapp.address.rm3</name>
+<value>mst3:8088</value>
+</property>
+<property>
+<name>yarn.log-aggregation-enable</name>
+<value>true</value>
+</property>
+<property>
+<name>yarn.nodemanager.resource.memory-mb</name>
+<value>6144</value>
+</property>
+<property>
+<name>yarn.scheduler.minimum-allocation-mb</name>
+<value>1024</value>
+</property>
+<property>
+<name>yarn.scheduler.maximum-allocation-mb</name>
+<value>6144</value>
+</property>
+<property>
+<name>yarn.resourcemanager.ha.automatic-failover.enabled</name>
+<value>true</value>
+</property>
+<property>
+<name>yarn.client.failover-proxy-provider</name>
+<value>org.apache.hadoop.yarn.client.ConfiguredRMFailoverProxyProvider</value>
+</property>
+<property>
+<name>yarn.resourcemanager.zk-address</name>
+<value>zkhive:2181</value>
+</property>
+</configuration>
+
+```
+```
+nano $HADOOP_HOME/etc/hadoop/mapred-site.xml
+
+<configuration>
+<property>
+<name>mapreduce.framework.name</name>
+<value>yarn</value>
+</property>
+<property>
+<name>mapreduce.jobtracker.address</name>
+<value>localhost:8032</value>
+</property>
+<property>
+<name>mapreduce.jobhistory.done-dir</name>
+<value>/logs/hadoop/jobhistory/done</value>
+</property>
+<property>
+<name>mapreduce.shuffle.port</name>
+<value>13562</value>
+</property>
+<property>
+<name>mapreduce.map.memory.mb</name>
+<value>1024</value> <!-- 1 GB -->
+</property>
+<property>
+<name>mapreduce.reduce.memory.mb</name>
+<value>1024</value> <!-- 1 GB -->
+</property>
+<property>
+<name>mapreduce.map.java.opts</name>
+<value>-Xmx1536m</value>
+</property>
+<property>
+<name>mapreduce.reduce.java.opts</name>
+<value>-Xmx3072m</value>
+</property>
+<property>
+<name>mapreduce.jobhistory.intermediate-done-dir</name>
+<value>/logs/hadoop/jobhistory/intermediate-done</value>
+</property>
+<property>
+<name>mapreduce.jobhistory.address</name>
+<value>0.0.0.0:10020</value>
+</property>
+<property>
+<name>mapreduce.jobhistory.webapp.address</name>
+<value>0.0.0.0:19888</value>
+</property>
+<property>
+<name>yarn.app.mapreduce.am.env</name>
+<value>HADOOP_MAPRED_HOME=/opt/hadoop</value>
+</property>
+<property>
+<name>mapreduce.map.env</name>
+<value>HADOOP_MAPRED_HOME=/opt/hadoop</value>
+</property>
+<property>
+<name>mapreduce.reduce.env</name>
+<value>HADOOP_MAPRED_HOME=/opt/hadoop</value>
+</property>
+</configuration>
+```
+
+```
+nano $HADOOP_HOME/etc/hadoop/workers
+
+add
+slv1
+slv2
+slv3
 ```
 
 # Setting up hybrid MariaDB Galera Cluster setup with dedicated master and slave nodes
