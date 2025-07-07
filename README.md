@@ -171,10 +171,56 @@ Verification should output "Active: active (running)"
 
 ```
 #Install HAProxy
+cd /opt/haproxy 
 sudo apt install haproxy -y
 
 #Verify installation
 haproxy -v
+```
+
+# Installing Zookeeper on Mater nodes
+
+ZooKeeper is a centralized service for maintaining configuration information, naming, providing distributed synchronization, and providing group services.
+
+```
+#Update System Packages
+sudo apt update
+sudo apt upgrade -y
+```
+## Zookeeper COnfiguartion
+
+### Create myid Files
+On each node, create the myid file matching its assigned number
+
+```
+# On zk1:
+echo 1 | sudo tee /opt/Zookeeper/myid
+
+# On zk2:
+echo 2 | sudo tee /opt/Zookeeper/myid
+
+# On zk3:
+echo 3 | sudo tee /opt/Zookeeper/myid
+```
+### Common zoo.cfg
+All nodes should have this identical base configuration in /etc/zookeeper/conf/zoo.cfg
+
+```
+sudo nano /opt/zookeeper/conf/conf/zoo.cfg
+
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/opt/zookeeper/data
+clientPort=2181
+maxClientCnxns=60
+autopurge.snapRetainCount=3
+autopurge.purgeInterval=1
+
+# Cluster configuration
+server.1=zkhive:2888:3888
+server.2=zkhive:2888:3888
+server.3=zkhive:2888:3888
 ```
 
 # Setting up hybrid MariaDB Galera Cluster setup with dedicated master and slave nodes
@@ -197,13 +243,20 @@ Edit the configuration file and include below configurations
 wsrep_on = ON
 wsrep_provider = /usr/lib/galera/libgalera_smm.so
 wsrep_cluster_name = "galera_cluster"
-wsrep_cluster_address = "gcomm://172.27.16.193,172.27.16.194,172.27.16.195"
+wsrep_cluster_address = "gcomm://mst1,mst2,mst3"
 wsrep_node_address = "172.27.16.193" # change as per the current node 
 wsrep_node_name = "mst1"  # change as per the current node            
 binlog_format = ROW
 default_storage_engine = InnoDB
 innodb_autoinc_lock_mode = 2
-log_slave_updates = ON    
+log_slave_updates = ON
+
+[mysqld]
+bind-address=0.0.0.0
+binlog_format=ROW
+default_storage_engine=InnoDB
+innodb_autoinc_lock_mode=2
+
 ```
 
 
