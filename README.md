@@ -177,13 +177,33 @@ sudo apt install haproxy -y
 haproxy -v
 ```
 
-# Setting up MariaDB Galera Cluster
+# Setting up hybrid MariaDB Galera Cluster setup with dedicated master and slave nodes
 
 A MariaDB Galera Cluster is a synchronous multi-master database cluster solution that provides high availability, scalability, and data consistency across multiple nodes. It allows read/write operations on any node, with changes automatically replicated to all other nodes in real time. 
 
 ### Key Features of MariaDB Galera Cluster
-- Synchronous Replication: Changes are applied to all nodes simultaneously, ensuring no data loss 16.
-- Multi-Master Architecture: Any node can handle write operations, eliminating single-point-of-failure 47.
-- High Availability: If a node fails, others continue serving requests 69.
+- Synchronous Replication: Changes are applied to all nodes simultaneously, ensuring no data loss
+- Multi-Master Architecture: Any node can handle write operations, eliminating single-point-of-failure
+- High Availability: If a node fails, others continue serving requests
 - Automatic Node Recovery: Failed nodes can rejoin the cluster and sync automatically
+
+### Galera Cluster Setup (Multi-Master: mst1, mst2, mst3)
+```
+ Sudo nano /etc/mysql/mariadb.conf.d/60-galera.cnf
+```
+Edit the configuration file and include below configurations 
+```
+[galera]
+wsrep_on = ON
+wsrep_provider = /usr/lib/galera/libgalera_smm.so
+wsrep_cluster_name = "galera_cluster"
+wsrep_cluster_address = "gcomm://172.27.16.193,172.27.16.194,172.27.16.195"
+wsrep_node_address = "172.27.16.193" # change as per the current node 
+wsrep_node_name = "mst1"  # change as per the current node            
+binlog_format = ROW
+default_storage_engine = InnoDB
+innodb_autoinc_lock_mode = 2
+log_slave_updates = ON    
+```
+
 
