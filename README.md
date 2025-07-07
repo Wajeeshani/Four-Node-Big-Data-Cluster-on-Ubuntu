@@ -194,13 +194,13 @@ On each node, create the myid file matching its assigned number
 
 ```
 # On zk1:
-echo 1 | sudo tee /opt/Zookeeper/myid
+echo 1 | sudo tee /opt/zookeeper/data/myid
 
 # On zk2:
-echo 2 | sudo tee /opt/Zookeeper/myid
+echo 2 | sudo tee /opt/zookeeper/data/myid
 
 # On zk3:
-echo 3 | sudo tee /opt/Zookeeper/myid
+echo 3 | sudo tee /opt/zookeeper/data/myid
 ```
 ### Common zoo.cfg
 All nodes should have this identical base configuration in /etc/zookeeper/conf/zoo.cfg
