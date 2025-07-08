@@ -171,7 +171,8 @@ Verification should output "Active: active (running)"
 
 ```
 #Install HAProxy
-cd /opt/haproxy 
+sudo apt install build-essential libssl-dev zlib1g-dev -y
+
 sudo apt install haproxy -y
 
 #Verify installation
@@ -245,6 +246,8 @@ export PATH=$PATH:$JAVA_HOME/bin
 source ~/.bashrc
 ```
 Hadoop Configuration for Multi-node Cluster
+
+You may do following changes on the mst1 and copy the final directory to other nodes 
 ```
 cd /opt/hadoop/etc/hadoop/
 nano $HADOOP_HOME/etc/hadoop/hadoop-env.sh
@@ -264,7 +267,7 @@ nano $HADOOP_HOME/etc/hadoop/core-site.xml
 </property>
 <property>
 <name>ha.zookeeper.quorum</name>
-<value>zkhive:2181</value>
+<value>mst1:2181,mst2:2181,mst3:2181</value>
 </property>
 </configuration>
 ```
@@ -299,14 +302,13 @@ Add following :
 <name>dfs.namenode.http-address</name>
 <value>0.0.0.0:9870</value>
 </property>
-12
 <property>
 <name>dfs.client.failover.proxy.provider.hadoop-cluster</name>
 <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
 </property>
 <property>
 <name>dfs.namenode.shared.edits.dir</name>
-<value>qjournal://zkhive:8485/hadoop-cluster</value>
+<value>qjournal://mst1:8485;mst2:8485;mst3:8485/hadoop-cluster</value>
 </property>
 <property>
 <name>dfs.ha.fencing.methods</name>
@@ -326,7 +328,7 @@ Add following :
 </property>
 <property>
 <name>dfs.journalnode.edits.dir</name>
-<value>/data/hdfs/journal</value>
+<value>/opt/hadoop/data/journal</value>
 </property>
 <property>
 <name>dfs.datanode.address</name>
@@ -336,26 +338,25 @@ Add following :
 <name>dfs.datanode.http.address</name>
 <value>0.0.0.0:50075</value>
 </property>
-<property>
+<!--property>
 <name>dfs.hosts.exclude</name>
 <value>/opt/hadoop/etc/hadoop/dfs.exclude</value>
-</property>
+</property-->
 <property>
 <name>dfs.namenode.name.dir</name>
-<value>/data/hdfs/namenode</value>
+<value>/opt/hadoop/data/namenode</value>
 </property>
 <property>
 <name>dfs.namenode.checkpoint.dir</name>
-<value>/data/hdfs/checkpoint</value>
+<value>/opt/hadoop/data/checkpoint</value>
 </property>
 <property>
 <name>dfs.datanode.data.dir</name>
-<value>/data/hdfs/datanode</value>
+<value>/opt/hadoop/data/datanode</value>
 </property>
 <property>
 <name>dfs.replication</name>
-<value>1</value>
-13
+<value>2</value>
 </property>
 <property>
 <name>dfs.blocksize</name>
@@ -379,7 +380,7 @@ Add following :
 </property>
 <property>
 <name>dfs.namenode.edits.dir</name>
-<value>/data/hdfs/namenode/edits</value>
+<value>/opt/hadoop/data/namenode/edits</value>
 </property>
 <property>
 <name>dfs.datanode.ipc.address</name>
@@ -399,6 +400,10 @@ Add following :
 nano $HADOOP_HOME/etc/hadoop/yarn-site.xml
 
 <configuration>
+
+<!-- Site specific YARN configuration properties -->
+
+
 <property>
 <name>yarn.resourcemanager.ha.enabled</name>
 <value>true</value>
@@ -477,7 +482,7 @@ nano $HADOOP_HOME/etc/hadoop/yarn-site.xml
 </property>
 <property>
 <name>yarn.resourcemanager.zk-address</name>
-<value>zkhive:2181</value>
+<value>mst1:2181,mst2:2181,mst3:2181</value>
 </property>
 </configuration>
 
@@ -486,6 +491,8 @@ nano $HADOOP_HOME/etc/hadoop/yarn-site.xml
 nano $HADOOP_HOME/etc/hadoop/mapred-site.xml
 
 <configuration>
+
+
 <property>
 <name>mapreduce.framework.name</name>
 <value>yarn</value>
@@ -544,7 +551,15 @@ nano $HADOOP_HOME/etc/hadoop/mapred-site.xml
 </property>
 </configuration>
 ```
-
+Make relevent directories in the /opt/hadoop location 
+```
+cd /opt/hadoop/
+mkdir data
+cd data
+mkdir -p {datanode,namenode}
+mkdir checkpoint  
+mkdir journal  
+```
 ```
 nano $HADOOP_HOME/etc/hadoop/workers
 
@@ -553,6 +568,47 @@ slv1
 slv2
 slv3
 ```
+```
+hadoop-daemon.sh start journalnode
+#one master
+hdfs namenode -format
+
+#Other masters
+hdfs --daemon start namenode
+hdfs namenode -bootstrapStandby
+
+#HDFS start
+start-all.sh
+```
+
+## Verification
+ 
+### Check HDFS Status
+```bash
+hdfs dfsadmin -report
+hdfs haadmin -getServiceState nn1
+hdfs haadmin -getServiceState nn2
+hdfs haadmin -getServiceState nn3
+```
+### Check YARN Status
+```bash
+yarn node -list
+yarn application -list
+```
+```
+jps
+```
+you will see the following output 
+
+45889 ResourceManager
+33297 QuorumPeerMain
+47475 Jps
+45259 JournalNode
+45004 NameNode
+45501 DFSZKFailoverController
+
+
+
 
 # Setting up hybrid MariaDB Galera Cluster setup with dedicated master and slave nodes
 
@@ -566,7 +622,7 @@ A MariaDB Galera Cluster is a synchronous multi-master database cluster solution
 
 ### Galera Cluster Setup (Multi-Master: mst1, mst2, mst3)
 ```
- Sudo nano /etc/mysql/mariadb.conf.d/60-galera.cnf
+ sudo nano /etc/mysql/mariadb.conf.d/60-galera.cnf
 ```
 Edit the configuration file and include below configurations 
 ```
@@ -589,5 +645,100 @@ default_storage_engine=InnoDB
 innodb_autoinc_lock_mode=2
 
 ```
+```
+sudo systemctl set-environment MYSQLD_OPTS="--wsrep-new-cluster"
+sudo systemctl start mariadb
+sudo systemctl unset-environment MYSQLD_OPTS # IMPORTANT: Unset this immediately after the first node starts
+```
+# create some users 
 
+```
+sudo mysql -u root (password not required)
+
+CREATE USER 'root'@'%' IDENTIFIED BY 'root';
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'root';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
+
+#now log again with password
+
+```
+mysql -u root -p (with password)
+CREATE USER 'haproxy_check'@'%';
+FLUSH PRIVILEGES;
+
+CREATE USER 'appuser'@'%' IDENTIFIED BY 'appuser';
+GRANT ALL PRIVILEGES ON *.* TO 'appuser'@'%';
+FLUSH PRIVILEGES;
+EXIT;
+```
+# HA Proxy Configurations
+
+Add below configurations in 
+
+```
+# Global Configurations 
+
+listen stats
+        mode http
+        bind *:8404
+        stats enable
+        stats uri /haproxy?stats
+        stats refresh 10s
+#       stats realm Strictly\ Private
+        stats show-legends
+        stats show-node
+        stats show-desc "Open Source Hadoop Cluster Statistics"
+        stats show-modules
+        stats hide-version
+        stats auth hadoop:hadoop
+
+# MariaDB Configurations 
+
+listen mariadb_write
+    bind *:3307
+    mode tcp
+    option mysql-check user haproxy_check
+    log global
+    option tcplog
+    server mariadb1 mst1:3306 check
+    server mariadb2 mst2:3306 check backup
+    server mariadb3 mst3:3306 check backup
+
+# Read requests (load-balanced)
+listen mariadb_read
+    bind *:3306
+    mode tcp
+    option mysql-check user haproxy_check
+    log global
+    option tcplog
+    balance roundrobin
+    server mariadb1 mst1:3306 check
+    server mariadb2 mst2:3306 check
+    server mariadb3 mst3:3306 check
+
+frontend mariadb_front
+        bind *:3307
+        timeout client 30s
+        mode tcp
+        log global
+        option tcplog
+        default_backend mariadb_back
+
+backend mariadb_back
+        mode tcp
+        balance roundrobin
+        option tcp-check
+        log global
+        option tcplog
+        server mariadb1 mst1:3306 check
+        server mariadb2 mst2:3306 check backup
+        server mariadb3 mst3:3306 check backup
+        timeout connect 5s
+        timeout server 30s
+		
+```
 
