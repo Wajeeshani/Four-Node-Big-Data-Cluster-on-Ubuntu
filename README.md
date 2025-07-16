@@ -607,7 +607,23 @@ you will see the following output
 45004 NameNode
 45501 DFSZKFailoverController
 
+# Hive Configuration
 
+## Adding System Variables
+
+You may add below configurations in bashrc file. 
+```
+nano ~/.bashrc 
+
+#Hive Related Options
+export HIVE_HOME=/opt/hive
+export HIVE_CONF=$HIVE_HOME/conf
+export PATH=$PATH:$HIVE_HOME/bin
+export CLASSPATH=$CLASSPATH:$HADOOP_HOME/lib/*:.
+export CLASSPATH=$CLASSPATH:$HIVE_HOME/lib/*:.
+
+source ~/.bashrc 
+```
 
 
 # Setting up hybrid MariaDB Galera Cluster setup with dedicated master and slave nodes
