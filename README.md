@@ -757,4 +757,54 @@ backend mariadb_back
         timeout server 30s
 		
 ```
+# Hive Metastore
+
+You need to stop mysql on all nodes and run below commands 
+
+```
+#Hive build mqsql metastore
+cd $HIVE_HOME/bin
+schematool -dbType mysql -initSchema
+```
+It will run a script and provide you a successfull output
+Then you need to run below command to up the metastore
+
+```
+hive --service metastore &
+hive --service hiveserver2 &
+```
+
+Then you can connect to the Hive using below command 
+
+```
+hive
+beeline -u "jdbc:hive2://mst1:2181,mst2:2181,mst3:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2"
+```
+Then you may check the connectivity by creating a database. 
+
+# TEZ Configurations
+
+Add below System variables
+
+```
+nano ~/.bashrc 
+
+
+#Tez Related Options
+export TEZ_HOME=/opt/tez
+export TEZ_CONF_DIR=$TEZ_HOME/conf
+
+export TEZ_JARS=$TEZ_HOME
+# For enabling hive to use the Tez engine
+if [ -z "$HIVE_AUX_JARS_PATH" ]; then
+export HIVE_AUX_JARS_PATH="$TEZ_JARS"
+else
+export HIVE_AUX_JARS_PATH="$HIVE_AUX_JARS_PATH:$TEZ_JARS"
+fi
+
+
+export HADOOP_CLASSPATH=${TEZ_CONF_DIR}:${TEZ_JARS}/*:${TEZ_JARS}/lib/*
+
+source ~/.bashrc
+```
 
