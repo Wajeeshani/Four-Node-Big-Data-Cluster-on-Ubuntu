@@ -784,6 +784,14 @@ Then you may check the connectivity by creating a database.
 
 # TEZ Configurations
 
+Download and move the tez files to /opt/ path
+
+```
+wget https://downloads.apache.org/tez/0.10.4/apache-tez-0.10.4-bin.tar.gz
+tar -xzvf apache-tez-0.10.4-bin.tar.gz 
+mv /opt/apache-tez-0.10.4-bin /opt/tez
+```
+
 Add below System variables
 
 ```
@@ -875,3 +883,18 @@ It will output below.
 
 <img width="656" height="127" alt="image" src="https://github.com/user-attachments/assets/c33465c4-5d2c-4f99-b72f-82c19f64f3fc" />
 
+# SPARK Configurations
+
+Add below system variables 
+
+```
+nano ~/.bashrc 
+
+#Spark Related Options
+export SPARK_HOME=/opt/spark
+export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+export PYSPARK_PYTHON=/usr/bin/python3
+export LD_LIBRARY_PATH=$HADOOP_HOME/lib/native:$LD_LIBRARY_PATH
+
+source ~/.bashrc 
+```
