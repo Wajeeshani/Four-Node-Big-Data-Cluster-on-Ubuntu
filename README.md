@@ -885,6 +885,14 @@ It will output below.
 
 # SPARK Configurations
 
+Download spark using below code and move the folder to /opt/ path
+
+```
+wget https://downloads.apache.org/spark/spark-3.5.0/spark-3.5.0-bin-hadoop3.tgz
+tar -xvzf spark-3.5.0-bin-hadoop3.tgz
+mv  mv spark-3.5.6-bin-hadoop3 /opt/spark
+```
+
 Add below system variables 
 
 ```
@@ -898,3 +906,33 @@ export LD_LIBRARY_PATH=$HADOOP_HOME/lib/native:$LD_LIBRARY_PATH
 
 source ~/.bashrc 
 ```
+
+```
+cp log4j2.properties.template log4j2.properties
+nano $SPARK_HOME/conf/log4j2.properties
+```
+Add below configurations 
+
+```
+logger.HiveConf.name=org.apache.hadoop.hive.conf.HiveConf
+logger.HiveConf.level=ERROR
+```
+Copy mysql connector to spark jar folder
+```
+sudo cp /home/hadoop/mysql-connector-j-9.3.0/mysql-connector-j-9.3.0.jar  $SPARK_HOME/jars/
+```
+Copy the spark folder to other nodes
+```
+scp -r /opt/spark hadoop@mst2:/opt/
+scp -r /opt/spark hadoop@mst3:/opt/
+scp -r /opt/spark hadoop@slv1:/opt/
+```
+```
+#Testing
+start-master.sh
+start-worker.sh spark://localhost:7077
+
+netstat -tuln | grep 7077
+netstat -tuln | grep 8080
+```
+<img width="1030" height="177" alt="image" src="https://github.com/user-attachments/assets/45da9c31-6ef4-489e-8311-bb748e5d0ca8" />
