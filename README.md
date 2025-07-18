@@ -808,3 +808,70 @@ export HADOOP_CLASSPATH=${TEZ_CONF_DIR}:${TEZ_JARS}/*:${TEZ_JARS}/lib/*
 source ~/.bashrc
 ```
 
+### Create required HDFS folders and upload TEZ
+```
+hdfs dfs -mkdir /apps
+hdfs dfs -mkdir /apps/tez
+hdfs dfs -chmod g+w /apps
+hdfs dfs -chmod g+wx /apps
+
+cp $HIVE_HOME/lib/protobuf-java-3.24.4.jar $TEZ_HOME/lib/
+hdfs dfs -put $HIVE_HOME/lib/hive-exec-4.0.0.jar /apps/tez
+cd $TEZ_HOME 
+hdfs dfs -put * /apps/tez
+```
+### TEZ Configurations (tez-site.xml)
+
+```
+cd $TEZ_HOME/conf/
+
+nano tez-site.xml 
+```
+add below configurations
+```
+<?xml version="1.0"?>
+<configuration>
+
+  <property>
+    <name>tez.lib.uris</name>
+    <value>${fs.default.name}/apps/tez/share/tez.tar.gz</value>
+  </property>
+
+</configuration>
+```
+### Hive Configurations - Change execution engine (hive-site.xml)
+
+Add below configurations
+```
+nano $HIVE_HOME/conf/hive-site.xml 
+```
+```
+  <property>
+    <name>hive.execution.engine</name>
+    <value>tez</value>
+    <description>
+      Expects one of [mr, tez, spark].
+      Chooses execution engine. Options are: mr (Map reduce, default), tez, spark. While>
+      remains the default engine for historical reasons, it is itself a historical engine
+      and is deprecated in Hive 2 line. It may be removed without further warning.
+    </description>
+  </property>
+```
+once all above configuratins are donw you may copy the folder to other master nodes 
+
+```
+ scp -r /opt/tez hadoop@mst2:/opt/
+ scp -r /opt/tez hadoop@mst3:/opt/
+```
+Then you can check if MapReduce has changed to Tez by running below command in the beeline 
+
+```
+beeline -u "jdbc:hive2://mst1:2181,mst2:2181,mst3:2181/;serviceDiscoveryMode=zooKeeper;zooKeeperNamespace=hiveserver2"
+```
+```
+set hive.execution.engine;
+```
+It will output below. 
+
+<img width="656" height="127" alt="image" src="https://github.com/user-attachments/assets/c33465c4-5d2c-4f99-b72f-82c19f64f3fc" />
+
