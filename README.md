@@ -921,18 +921,61 @@ Copy mysql connector to spark jar folder
 ```
 sudo cp /home/hadoop/mysql-connector-j-9.3.0/mysql-connector-j-9.3.0.jar  $SPARK_HOME/jars/
 ```
+Update spark-env.sh file 
+```
+cd $SPARK_HOME/conf
+cp spark-env.sh.template spark-env.sh
+```
+Add below configurations in the .sh file
+
+```
+export SPARK_HOME=/opt/spark
+export HADOOP_CONF_DIR=/opt/hadoop/etc/hadoop
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+export SPARK_MASTER_HOST=172.27.16.193
+export SPARK_WORKER_CORES=4
+export SPARK_WORKER_MEMORY=4g
+export SPARK_WORKER_INSTANCES=1
+export SPARK_LOCAL_DIRS=/data/spark
+export SPARK_WORKER_DIR=/data/spark/work
+export SPARK_MASTER_PORT=7077
+export SPARK_MASTER_WEBUI_PORT=8081
+export SPARK_LOG_DIR="$SPARK_HOME/logs"
+export SPARK_DRIVER_MEMORY=2g
+export SPARK_EXECUTOR_MEMORY=4g
+export SPARK_HISTORY_OPTS="-javaagent:/opt/jmx_exporter/jmx_prometheus_javaagent-0.17.2.jar=19070:/opt/jmx_exporter/exporter.yml"
+export SPARK_MASTER_OPTS="-Dspark.deploy.recoveryMode=ZOOKEEPER -Dspark.deploy.zookeeper.url=mst1:2181,mst2:2181,mst3:2181 -Dspark.deploy.zookeeper.dir=/spark"
+```
+
 Copy the spark folder to other nodes
 ```
 scp -r /opt/spark hadoop@mst2:/opt/
 scp -r /opt/spark hadoop@mst3:/opt/
 scp -r /opt/spark hadoop@slv1:/opt/
 ```
+In the Worker node chnage below congiguration in the spark-env.sh file
+
+```
+export SPARK_MASTER=spark://mst1:7077,mst2:7077,mst3:7077
+# Add below lines
+export SPARK_WORKER_DIR=/opt/spark/work
+export SPARK_WORKER_PORT=44821
+```
+
 ```
 #Testing
 start-master.sh
 start-worker.sh spark://localhost:7077
 
+# start slave node
+$SPARK_HOME/sbin/start-worker.sh
+
 netstat -tuln | grep 7077
 netstat -tuln | grep 8080
 ```
 <img width="1030" height="177" alt="image" src="https://github.com/user-attachments/assets/45da9c31-6ef4-489e-8311-bb748e5d0ca8" />
+
+Through below URL spark GUI should be available 
+http://172.27.16.193:8081/
+http://172.27.16.194:8081/
+http://172.27.16.195:8081/
