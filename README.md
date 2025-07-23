@@ -64,7 +64,7 @@ All servers must have:
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y nano openjdk-11-jdk openssh-server python3
 ```
-## Updating host file -Including statis Ips of all servers to resolve hostname in the /etc/hosts file
+## Updating host file -Including static Ips of all servers to resolve hostname in the /etc/hosts file
 ```
 sudo nano /etc/hosts
 ```
