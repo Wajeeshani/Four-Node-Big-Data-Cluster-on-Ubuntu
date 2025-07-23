@@ -66,7 +66,8 @@ sudo apt install -y nano openjdk-11-jdk openssh-server python3
 ## Including statis Ips of all servers to resolve hostname in the /etc/hosts file
 ```
 ## Updating host file 
-sudo mnano /etc/hosts
+```
+sudo nano /etc/hosts
 ```
 Include below lines in the hosts file of all 4 nodes
 ```
