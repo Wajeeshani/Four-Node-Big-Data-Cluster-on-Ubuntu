@@ -2,7 +2,7 @@
 
 ![Hadoop Cluster Architecture](https://img.shields.io/badge/Architecture-High%20Availability-brightgreen)
 ![Hadoop Version](https://img.shields.io/badge/Hadoop-3.4.0-blue)
-![Hive Version](https://img.shields.io/badge/Hadoop-4.0.0-skyblue)
+![Hive Version](https://img.shields.io/badge/Hive-4.0.0-skyblue)
 ![MariaDB Version](https://img.shields.io/badge/MariaDB-10.6.12-yellow)
 ![Spark Version](https://img.shields.io/badge/Spark-3.5.0-orange)
 
