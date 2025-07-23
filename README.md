@@ -1,23 +1,68 @@
-# Four-Node-Big-Data-Cluster-on-Ubuntu
-In this setup, we'll ensure high availability for critical services (HDFS NameNode and YARN ResourceManager) while using all four servers for data storage and processing. To maintain a fault-tolerant quorum for coordination services, we will run them on three of the four available nodes
+# Four-Node High-Availability Hadoop Cluster on Ubuntu
+
+![Hadoop Cluster Architecture](https://img.shields.io/badge/Architecture-High%20Availability-brightgreen)
+![Hadoop Version](https://img.shields.io/badge/Hadoop-3.4.0-blue)
+![MariaDB Version](https://img.shields.io/badge/MariaDB-10.6.12-blue)
+![Spark Version](https://img.shields.io/badge/Spark-3.5.0-orange)
+
+A complete guide to setting up a fault-tolerant, high-availability Hadoop cluster with 3 master nodes and 1 worker node, including HDFS, YARN, ZooKeeper, MariaDB Galera Cluster, Hive, Tez, and Spark integration.
+
+## Cluster Architecture Overview
+
+Our architecture provides high availability for critical services (HDFS NameNode and YARN ResourceManager) while utilizing all four servers for data storage and processing. The quorum-based coordination services run on three nodes for fault tolerance.
+
+### Node Roles:
+- **Master Nodes (mst1, mst2, mst3)**:
+  - HDFS NameNode (Active/Standby)
+  - YARN ResourceManager
+  - ZooKeeper
+  - JournalNode
+  - MariaDB Galera Cluster
+  - Hive Metastore
+  - Spark Master
+
+- **Worker Node (slv1)**:
+  - HDFS DataNode
+  - YARN NodeManager
+  - Spark Worker
+  - HAProxy Load Balancer
+
+## Key Features
+- **High Availability HDFS**: Automatic failover for NameNode with ZooKeeper
+- **Fault-tolerant YARN**: ResourceManager HA with ZooKeeper-based leader election
+- **Synchronous Database**: MariaDB Galera Cluster for Hive Metastore
+- **Multi-engine Support**: MapReduce, Tez, and Spark execution engines
+- **Load Balancing**: HAProxy for MariaDB read/write splitting
+- **Monitoring**: Built-in web UIs for all services
 
 ## Prerequisites (All 4 Servers)
-Before begin, ensure each of your 4 servers are ready.<br>
-•	Hardware: For the two master/slave nodes, aim for higher RAM (e.g., 32-64GB) to handle both master and slave processes.<br>
-• Editor : Install a preferable editor in all 4 nodes<br>
-•	Network: All servers must have static IPs and be able to resolve each other's hostnames via the /etc/hosts file.<br>
-•	User Account: Create a dedicated hadoop user on all nodes.<br>
-•	SSH Access: Configure passwordless SSH for the hadoop user from server-1 to all other servers (server-1, server-2, server-3, server-4).<br>
-•	Software: Install OpenJDK 11 and disable or configure firewalls on all four nodes.<br>
 
-## Installing a preferable editor in all 4 nodes
-```
-## Installing nano
-sudo apt update 
-provide the password for the sudo login 
-sudo apt install nano -y
-nano --version
-```
+### Hardware Requirements
+| Node Type       | CPU Cores | RAM  | Storage |
+|-----------------|-----------|------|---------|
+| Master Nodes    | 8+        | 32GB | 100GB   |
+| Worker Node     | 4+        | 16GB | 500GB   |
+
+### Software Requirements
+- Ubuntu 20.04/22.04 LTS
+- OpenJDK 11
+- SSH server
+- Python 3
+
+### Network Configuration
+All servers must have:
+- Static IP addresses
+- Proper hostname resolution via `/etc/hosts`
+- Passwordless SSH between all nodes
+- Open ports for Hadoop services (8020, 8088, 9870, etc.)
+
+## Installation Guide
+
+### 1. System Preparation
+```bash
+# On all nodes
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y nano openjdk-11-jdk openssh-server python3
 ## Including statis Ips of all servers to resolve hostname in the /etc/hosts file
 ```
 ## Updating host file 
@@ -979,3 +1024,5 @@ Through below URL spark GUI should be available
 http://172.27.16.193:8081/
 http://172.27.16.194:8081/
 http://172.27.16.195:8081/
+
+
