@@ -1025,4 +1025,11 @@ http://172.27.16.193:8081/
 http://172.27.16.194:8081/
 http://172.27.16.195:8081/
 
+# PrestoDB Installation
+
+```
+wget https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.292/presto-server-0.292.tar.gz
+tar -xzvf presto-server-0.292.tar.gz
+mv presto-server-0.292 /opt/prestodb
+```
 
