@@ -2,7 +2,8 @@
 
 ![Hadoop Cluster Architecture](https://img.shields.io/badge/Architecture-High%20Availability-brightgreen)
 ![Hadoop Version](https://img.shields.io/badge/Hadoop-3.4.0-blue)
-![MariaDB Version](https://img.shields.io/badge/MariaDB-10.6.12-blue)
+![Hive Version](https://img.shields.io/badge/Hadoop-4.0.0-skyblue)
+![MariaDB Version](https://img.shields.io/badge/MariaDB-10.6.12-yellow)
 ![Spark Version](https://img.shields.io/badge/Spark-3.5.0-orange)
 
 A complete guide to setting up a fault-tolerant, high-availability Hadoop cluster with 3 master nodes and 1 worker node, including HDFS, YARN, ZooKeeper, MariaDB Galera Cluster, Hive, Tez, and Spark integration.
