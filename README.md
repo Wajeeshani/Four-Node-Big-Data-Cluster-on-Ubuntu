@@ -63,13 +63,12 @@ All servers must have:
 # On all nodes
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y nano openjdk-11-jdk openssh-server python3
-## Including statis Ips of all servers to resolve hostname in the /etc/hosts file
 ```
-## Updating host file 
+## Updating host file -Including statis Ips of all servers to resolve hostname in the /etc/hosts file
 ```
 sudo nano /etc/hosts
 ```
-Include below lines in the hosts file of all 4 nodes
+Include below lines in the hosts file of all 4 nodes.
 ```
 # NameNode IP
 172.27.16.193    mst1
