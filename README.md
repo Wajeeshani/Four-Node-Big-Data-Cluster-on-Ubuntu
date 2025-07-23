@@ -1033,4 +1033,9 @@ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-server/0.292/pres
 tar -xzvf presto-server-0.292.tar.gz
 mv presto-server-0.292 /opt/prestodb
 ```
-
+### Install the Presto CLI
+```
+wget https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.292/presto-cli-0.292-executable.jar
+mv presto-cli-0.289-executable.jar /opt/prestodb/bin/presto
+chmod +x /opt/prestodb/bin/presto
+```
