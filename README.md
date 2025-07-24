@@ -1039,4 +1039,96 @@ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.292/presto-
 mv presto-cli-0.289-executable.jar /opt/prestodb/bin/presto
 chmod +x /opt/prestodb/bin/presto
 ```
+In PrestoDB you may have one manster node as the coordinator and all other nodes as worker nodes. 
+
+Create the following configuration files in /opt/prestodb/etc/ path
+```
+mkdir /opt/prestodb/etc
+```
+1. Node Configuration (node.properties)
+```
+touch node.properties
+nano node.properties
+
+# Add below configurations
+
+node.environment=production
+node.id=presto_mst1
+node.data-dir=/opt/prestodb/data
+```
+2. JVM Configuration (jvm.config)
+```
+touch jvm.config
+nano jvm.config
+
+# Add below configurations
+
+-Djdk.attach.allowAttachSelf=true
+-server
+-Xmx16G
+-XX:+UseG1GC
+-XX:G1HeapRegionSize=32M
+-XX:+UseGCOverheadLimit
+-XX:+ExplicitGCInvokesConcurrent
+-XX:+HeapDumpOnOutOfMemoryError
+-XX:+ExitOnOutOfMemoryError
+```
+3. Config Properties (config.properties)
+
+```
+touch config.properties
+nano config.properties
+
+# Add below configurations on the cordinator Node
+
+coordinator=true
+node-scheduler.include-coordinator=false
+http-server.http.port=8090
+query.max-memory=10GB
+query.max-memory-per-node=1GB
+discovery-server.enabled=true
+discovery.uri=http://172.27.16.193:8090
+discovery.max-wait-for-worker-heartbeat=60s
+
+# Add below configurations on the worker Node
+
+coordinator=false
+http-server.http.port=8090
+#discovery.uri=http://<ha_proxy_server_ip>:<ha_proxy_presto_port>
+discovery.uri=http://172.27.16.196:8095
+```
+4. Catalog Configuration (catalog/hive.properties)
+```
+mkdir /opt/prestodb/etc/catalog
+touch hive.properties
+nano hive.properties
+
+# Add below configurations on the cordinator Node
+
+connector.name=hive-hadoop2
+hive.metastore.uri=thrift://mst1:9083,thrift://mst2:9083,thrift://mst3:9083
+hive.config.resources=/opt/hadoop/etc/hadoop/core-site.xml,/opt/hadoop/etc/hadoop/hdfs-site.xml
+```
+
+Copy the prestodb folder to other nodes
+```
+scp -r /opt/prestodb hadoop@mst2:/opt/
+scp -r /opt/prestodb hadoop@mst3:/opt/
+scp -r /opt/prestodb hadoop@slv1:/opt/
+```
+After copying check and update above worker node configurations in worker node configuration files 
+
+## Start Prestodb
+
+On all nodes, run the following command to start Presto:
+```
+/opt/prestodb/bin/launcher start
+```
+## Verify PrestoDB is Running
+Access the Presto coordinator’s UI at http://<ha_proxy_server_ip>:8095 (http://172.27.16.193:8090/ui/) to verify that nodes are connected.
+
+It will show below screen if your Cordinator and worker nodes are communicated correctly 
+
 <img width="1346" height="630" alt="image" src="https://github.com/user-attachments/assets/bc4a5313-acef-4a36-8a21-b40053d3b4e1" />
+
+
