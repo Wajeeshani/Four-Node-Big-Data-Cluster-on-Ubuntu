@@ -96,7 +96,7 @@ Include below lines in the hosts file of all 4 nodes.
 172.27.16.194    zkhive
 172.27.16.195    zkhive
 ```
-## Configure passwordless SSH for the hadoop user from server-1 to all other servers
+## Configure mutual passwordless SSH between all nodes:
 
 ### Prerequisites
 
@@ -111,9 +111,10 @@ for node in mst1 mst2 mst3 slv1; do
   ssh hadoop@$node "mkdir -p ~/.ssh; chmod 700 ~/.ssh"
 done
 
-#Generate SSH keys on all nodes
+# Generate keys on all nodes
 for node in mst1 mst2 mst3 slv1; do
-  ssh hadoop@$node "if [ ! -f ~/.ssh/id_rsa ]; then ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa; fi"
+  ssh hadoop@$node "mkdir -p ~/.ssh && chmod 700 ~/.ssh"
+  ssh hadoop@$node "ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa"
 done
 
 #Create combined known_hosts file
@@ -198,7 +199,9 @@ source ~/.bashrc
 ```
 Now the pre-requisits are all installed and configured. 
 
-# Install MariaDB in 3 Master nodes
+# Core Components Installation
+
+## Install MariaDB in 3 Master nodes
 
 ```
 #Install MariaDB
@@ -213,7 +216,7 @@ sudo systemctl status mariadb
 ```
 Verification should output "Active: active (running)"
 
-# Installing HAProxy on Ubuntu Slave Node
+## Installing HAProxy on Ubuntu Slave Node
 
 ```
 #Install HAProxy
@@ -225,7 +228,7 @@ sudo apt install haproxy -y
 haproxy -v
 ```
 
-# Installing Zookeeper on Master nodes
+## Installing Zookeeper on Master nodes
 
 ZooKeeper is a centralized service for maintaining configuration information, naming, providing distributed synchronization, and providing group services.
 
@@ -269,7 +272,7 @@ server.1=mst1:2888:3888
 server.2=mst2:2888:3888
 server.3=mst3:2888:3888
 ```
-# HADOOP Installation and configuration
+## HADOOP Installation and configuration
 ```
 wget https://dlcdn.apache.org/hadoop/common/hadoop-3.4.0/hadoop-3.4.0.tar.gz
 tar xzvf hadoop-3.4.0.tar.gz
@@ -291,7 +294,7 @@ export PATH=$PATH:$JAVA_HOME/bin
 
 source ~/.bashrc
 ```
-Hadoop Configuration for Multi-node Cluster
+### Hadoop Configuration for Multi-node Cluster
 
 You may do following changes on the mst1 and copy the final directory to other nodes 
 ```
@@ -627,7 +630,7 @@ hdfs namenode -bootstrapStandby
 start-all.sh
 ```
 
-## Verification
+### Verification
  
 ### Check HDFS Status
 ```bash
@@ -653,9 +656,9 @@ you will see the following output
 45004 NameNode
 45501 DFSZKFailoverController
 
-# Hive Configuration
+## Hive Configuration
 
-## Adding System Variables
+### Adding System Variables
 
 You may add below configurations in bashrc file. 
 ```
@@ -712,7 +715,7 @@ sudo systemctl set-environment MYSQLD_OPTS="--wsrep-new-cluster"
 sudo systemctl start mariadb
 sudo systemctl unset-environment MYSQLD_OPTS # IMPORTANT: Unset this immediately after the first node starts
 ```
-# create some users 
+## create some users 
 
 ```
 sudo mysql -u root (password not required)
@@ -737,7 +740,7 @@ GRANT ALL PRIVILEGES ON *.* TO 'appuser'@'%';
 FLUSH PRIVILEGES;
 EXIT;
 ```
-# HA Proxy Configurations
+## HA Proxy Configurations
 
 Add below configurations in 
 
@@ -803,7 +806,7 @@ backend mariadb_back
         timeout server 30s
 		
 ```
-# Hive Metastore
+## Hive Metastore
 
 You need to stop mysql on all nodes and run below commands 
 
@@ -1039,7 +1042,7 @@ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.292/presto-
 mv presto-cli-0.289-executable.jar /opt/prestodb/bin/presto
 chmod +x /opt/prestodb/bin/presto
 ```
-In PrestoDB you may have one manster node as the coordinator and all other nodes as worker nodes. 
+In PrestoDB you may have one master node as the coordinator and all other nodes as worker nodes. 
 
 Create the following configuration files in /opt/prestodb/etc/ path
 ```
