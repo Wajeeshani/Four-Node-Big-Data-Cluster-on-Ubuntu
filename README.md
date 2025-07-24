@@ -225,7 +225,7 @@ sudo apt install haproxy -y
 haproxy -v
 ```
 
-# Installing Zookeeper on Mater nodes
+# Installing Zookeeper on Master nodes
 
 ZooKeeper is a centralized service for maintaining configuration information, naming, providing distributed synchronization, and providing group services.
 
@@ -234,7 +234,7 @@ ZooKeeper is a centralized service for maintaining configuration information, na
 sudo apt update
 sudo apt upgrade -y
 ```
-## Zookeeper COnfiguartion
+## Zookeeper Configuartion
 
 ### Create myid Files
 On each node, create the myid file matching its assigned number
