@@ -1039,3 +1039,4 @@ wget https://repo1.maven.org/maven2/com/facebook/presto/presto-cli/0.292/presto-
 mv presto-cli-0.289-executable.jar /opt/prestodb/bin/presto
 chmod +x /opt/prestodb/bin/presto
 ```
+<img width="1346" height="630" alt="image" src="https://github.com/user-attachments/assets/bc4a5313-acef-4a36-8a21-b40053d3b4e1" />
