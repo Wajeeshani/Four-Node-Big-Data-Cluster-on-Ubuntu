@@ -868,9 +868,22 @@ source ~/.bashrc
 ### Create required HDFS folders and upload TEZ
 ```
 hdfs dfs -mkdir /apps
-hdfs dfs -mkdir /apps/tez
 hdfs dfs -chmod g+w /apps
 hdfs dfs -chmod g+wx /apps
+
+hadoop fs -mkdir -p /apps/tez
+hadoop fs -put /opt/tez/share/tez.tar.gz /apps/tez/
+hadoop fs -chmod -R 777 /apps/tez
+
+# Create and set permissions for all required directories
+hadoop fs -mkdir -p /user/anonymous
+hadoop fs -mkdir -p /tmp/hive/anonymous
+hadoop fs -mkdir -p /tmp/tez
+
+# Set open permissions (for development only!)
+hadoop fs -chmod -R 777 /user
+hadoop fs -chmod -R 777 /tmp
+hadoop fs -chmod -R 777 /apps/tez
 
 cp $HIVE_HOME/lib/protobuf-java-3.24.4.jar $TEZ_HOME/lib/
 hdfs dfs -put $HIVE_HOME/lib/hive-exec-4.0.0.jar /apps/tez
@@ -888,14 +901,43 @@ add below configurations
 ```
 <?xml version="1.0"?>
 <configuration>
-
+  <!-- Tez library path in HDFS -->
   <property>
     <name>tez.lib.uris</name>
-    <value>${fs.default.name}/apps/tez/share/tez.tar.gz</value>
+    <value>${fs.defaultFS}/apps/tez/tez.tar.gz</value>
   </property>
+  
+  <!-- Anonymous access settings -->
+  <property>
+    <name>tez.am.staging-dir</name>
+    <value>/tmp/tez</value>
+  </property>
+  <property>
+    <name>tez.runtime.ifile.read.async</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>tez.session.client.timeout.secs</name>
+    <value>600</value>
+  </property>
+<property>
+  <name>tez.staging-dir</name>
+  <value>/tmp/tez</value>
+</property>
 
+<property>
+  <name>tez.use.cluster.hadoop-libs</name>
+  <value>true</value>
+</property>
 </configuration>
 ```
+### Update Hadoop Configuration
+```
+export TEZ_HOME=/opt/tez
+export TEZ_CONF_DIR=/opt/tez/conf
+export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:${TEZ_CONF_DIR}:${TEZ_HOME}/*:${TEZ_HOME}/lib/*
+```
+
 ### Hive Configurations - Change execution engine (hive-site.xml)
 
 Add below configurations
@@ -913,7 +955,79 @@ nano $HIVE_HOME/conf/hive-site.xml
       and is deprecated in Hive 2 line. It may be removed without further warning.
     </description>
   </property>
+<!-- Allow anonymous execution -->
+<property>
+  <name>hive.server2.enable.doAs</name>
+  <value>false</value>
+</property>
+
+<!-- Set scratch directories with open permissions -->
+<property>
+  <name>hive.exec.scratchdir</name>
+  <value>/tmp/hive</value>
+</property>
+
+<property>
+  <name>hive.scratch.dir.permission</name>
+  <value>777</value>
+</property>
+
+<!-- Disable permission checking -->
+<property>
+  <name>hive.metastore.authorization.storage.checks</name>
+  <value>false</value>
+</property>
+
+<property>
+  <name>hive.metastore.execute.setugi</name>
+  <value>true</value>
+</property>
 ```
+## set up temporary directories
+
+```
+hadoop fs -mkdir -p /tmp/tez /tmp/hive
+hadoop fs -chmod -R 777 /tmp/tez /tmp/hive
+```
+## Update YARN Configuration
+
+Add to yarn-site.xml 
+```
+<property>
+  <name>yarn.nodemanager.remote-app-log-dir</name>
+  <value>/tmp/logs</value>
+</property>
+
+<property>
+  <name>yarn.nodemanager.delete.debug-delay-sec</name>
+  <value>86400</value>
+</property>
+```
+You need to remove/rename below jar file in the hive lib 
+
+```
+cd /opt/hive/lib
+mv tez-api-0.10.3.jar tez-api-0.10.3.jar.back
+```
+
+## Restart Services
+```
+# Restart HDFS
+stop-dfs.sh
+start-dfs.sh
+
+# Restart YARN
+stop-yarn.sh
+start-yarn.sh
+
+# Restart Hive
+pkill -f HiveServer2
+pkill -f HiveMetaStore
+nohup hive --service metastore > hive-metastore.log 2>&1 &
+nohup hive --service hiveserver2 > hive-server2.log 2>&1 &
+```
+
+
 once all above configuratins are donw you may copy the folder to other master nodes 
 
 ```
@@ -927,10 +1041,13 @@ beeline -u "jdbc:hive2://mst1:2181,mst2:2181,mst3:2181/;serviceDiscoveryMode=zoo
 ```
 ```
 set hive.execution.engine;
+select count(*) from employee;
 ```
 It will output below. 
 
 <img width="656" height="127" alt="image" src="https://github.com/user-attachments/assets/c33465c4-5d2c-4f99-b72f-82c19f64f3fc" />
+<img width="1021" height="517" alt="image" src="https://github.com/user-attachments/assets/de7289d2-f816-41f1-bfed-5a842b48b58a" />
+
 
 # SPARK Configurations
 
@@ -939,7 +1056,7 @@ Download spark using below code and move the folder to /opt/ path
 ```
 wget https://downloads.apache.org/spark/spark-3.5.0/spark-3.5.0-bin-hadoop3.tgz
 tar -xvzf spark-3.5.0-bin-hadoop3.tgz
-mv  mv spark-3.5.6-bin-hadoop3 /opt/spark
+mv spark-3.5.6-bin-hadoop3 /opt/spark
 ```
 
 Add below system variables 
