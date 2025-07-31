@@ -227,6 +227,7 @@ sudo apt install haproxy -y
 #Verify installation
 haproxy -v
 ```
+http://172.27.16.196:8404/haproxy?stats
 
 ## Installing Zookeeper on Master nodes
 
