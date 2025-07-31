@@ -1267,7 +1267,7 @@ On all nodes, run the following command to start Presto:
 /opt/prestodb/bin/launcher start
 ```
 ## Verify PrestoDB is Running
-Access the Presto coordinator’s UI at http://<ha_proxy_server_ip>:8095 (http://172.27.16.193:8090/ui/) to verify that nodes are connected.
+Access the Presto coordinator’s UI at http://<ha_proxy_server_ip>:8095 (http://172.27.16.196:8095/ui/index.html) to verify that nodes are connected.
 
 It will show below screen if your Cordinator and worker nodes are communicated correctly 
 
