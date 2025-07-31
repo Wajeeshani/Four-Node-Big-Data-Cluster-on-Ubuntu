@@ -805,7 +805,28 @@ backend mariadb_back
         server mariadb3 mst3:3306 check backup
         timeout connect 5s
         timeout server 30s
-		
+
+#prestodb configurations
+#frontend presto_discovery
+#    bind *:8095
+#    default_backend presto_coordinators
+
+#backend presto_coordinators
+#    server coordinator1 172.27.16.193:8090 check
+
+frontend presto_frontend
+    bind *:8095
+    mode http
+    default_backend presto_backend
+
+backend presto_backend
+    mode http
+    balance roundrobin
+    option httpchk GET /v1/info  # Health check endpoint for Presto
+    http-check expect status 200
+    server presto_master_1 172.27.16.193:8090 check
+    server presto_master_2 172.27.16.194:8090 check backup
+    server presto_master_3 172.27.16.195:8090 check backup		
 ```
 ## Hive Metastore
 
