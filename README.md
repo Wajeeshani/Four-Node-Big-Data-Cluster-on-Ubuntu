@@ -1273,4 +1273,8 @@ It will show below screen if your Cordinator and worker nodes are communicated c
 
 <img width="1346" height="630" alt="image" src="https://github.com/user-attachments/assets/bc4a5313-acef-4a36-8a21-b40053d3b4e1" />
 
+To connect to the CLI you may run below code through the terminal window 
+
+./presto --server http://172.27.16.193:8090
+
 
