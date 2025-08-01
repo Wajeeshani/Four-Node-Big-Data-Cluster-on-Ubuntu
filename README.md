@@ -1277,4 +1277,6 @@ To connect to the CLI you may run below code through the terminal window
 
 ./presto --server http://172.27.16.193:8090
 
+LOG : /opt/prestodb/data/var/log/
+
 
